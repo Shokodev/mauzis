@@ -6,7 +6,7 @@ config();
 
 const petcareOptions = {
     update_polling_seconds: 10,
-    message_throttle_ms: 100,
+    message_throttle_ms: 500,
     battery_full: 1.4,
     battery_low: 1.15,
     login_cycle: '0 11,23 * * *',

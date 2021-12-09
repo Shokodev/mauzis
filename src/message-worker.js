@@ -2,8 +2,9 @@ import logger from "./logger.js";
 
 export const worker = (queue, callback) => {
     setInterval(async()=>{
+      let mes;  
       try {
-          let mes = queue.peek(); 
+          mes = queue.peek(); 
           if(mes){
             if(mes !== 'ignore'){
                  await callback(mes);
@@ -11,7 +12,9 @@ export const worker = (queue, callback) => {
             queue.dequeue();
           };
       } catch (err){
-          logger.error(`Queue worker error: ${err}`)
+          logger.error(`Queue worker error: ${err} drop msg: ${mes}`);
+          queue.dequeue();
+          await new Promise(r=>setInterval(r(),1000));
       }  
     },500);
     logger.info("Message worker started!");    

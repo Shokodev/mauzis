@@ -1,5 +1,5 @@
 export class Queue {
-    constructor(maxSize) {
+    constructor() {
        this.container = [];
      }
     isEmpty() {
@@ -19,8 +19,5 @@ export class Queue {
           return null;
        }
        return this.container[0];
-    }
-    clear() {
-       this.container = [];
     }
  }

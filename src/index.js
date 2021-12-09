@@ -36,8 +36,19 @@ petcare.on("message", async (mes) => {
     messageQueue.enqueue(mes);
 });
 
-petcare.on("direct_message", (msg) => {
-    
+petcare.on("direct_message", async (msg) => {
+    try {
+        await axios.post(`http://elasticsearch:9200/mauzis-msg-dump/cats`,
+            msg,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+        );
+    } catch (err) {
+        logger.error(`send [${msg.id}] to elastic failed with: ${err}`);
+    }
 });
 
 bot.launch();
