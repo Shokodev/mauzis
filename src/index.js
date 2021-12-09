@@ -3,9 +3,16 @@ import axios from 'axios';
 import { Telegraf } from 'telegraf';
 import { config } from 'dotenv';
 import petcare from './sure-petcare.js';
+import { Queue } from './Queue.js';
+import { worker } from './message-worker.js';
 config();
 const bot = new Telegraf(process.env.BOT_ID);
 const pets = Array.from(process.env.PETS.split(","));
+const messageQueue = new Queue();
+
+worker(messageQueue,async (mes) => {
+    await bot.telegram.sendMessage(process.env.CHAT_ID,mes);
+});
 
 bot.use(async (ctx, next) => {
     //basic security
@@ -25,15 +32,8 @@ petcare.on("error", (err) => {
     bot.telegram.sendMessage(process.env.CHAT_ID, err).catch(err=>error(`Error listener: ${err}`));
 });
 
-petcare.on("message", (mes) => {
-    //logger.info(mes);
-    if(mes !== 'ignore'){
-        try {
-            bot.telegram.sendMessage(process.env.CHAT_ID, mes);
-        } catch(err) {
-            logger.error(`Bot message listener faield: ${err}`);
-        };
-    }
+petcare.on("message", async (mes) => {
+    messageQueue.enqueue(mes);
 });
 
 petcare.on("direct_message", (msg) => {
@@ -53,18 +53,18 @@ bot.command('7', () =>  petcare.resetFeeders(petcare.utils.feederResetCommands.B
 bot.command('8', () =>  petcare.getPetCustomReport());
 bot.command('9', async (ctx) =>  {
     petcare.getDeviceReport();
-    const { data } = await axios.get('http://tractive:3000/report');
-    if (Array.isArray(data)) {
+    try {
+    const { data } = await axios.get('http://tractive:3000/report');  
         let map = {
             "TLCEWOPY": pets[0],
             "TWCAHAFR": pets[1],
             "TKJHLTXY": pets[2],
         }
-        ctx.reply(res.reduce((acc, val) => {
+        ctx.reply(data.reduce((acc, val) => {
                 return `${acc}${map[val.tracker]}: ${val.battery}\n`
             }, "Trackers\n***************************\n"));
-    } else {
-        logger.error(`Tractive Error; ${res}`)
+    } catch(err) {
+        logger.error(`Tractive fetch failed: ${err}`)
     };
 });
 bot.command('10', () => petcare.setPetPlace(pets[0], petcare.utils.petPlaceCommands.INSIDE));
