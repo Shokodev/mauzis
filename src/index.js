@@ -29,7 +29,7 @@ petcare.on("info", (info) => {
 
 petcare.on("error", (err) => {
     logger.error(err);
-    bot.telegram.sendMessage(process.env.CHAT_ID, err).catch(err=>error(`Error listener: ${err}`));
+    bot.telegram.sendMessage(process.env.CHAT_ID, err);
 });
 
 petcare.on("message", async (mes) => {

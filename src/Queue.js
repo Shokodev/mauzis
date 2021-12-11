@@ -20,4 +20,4 @@ export class Queue {
        }
        return this.container[0];
     }
- }
+}
