@@ -1,6 +1,7 @@
 import PetCare from 'node-surepetcare';
 import { config } from 'dotenv';
 import logger from './logger.js';
+import { checkTrackers } from "./tractive.js";
 import cron from 'node-cron';
 config();
 
@@ -96,6 +97,7 @@ cron.schedule(process.env.CRON_DOOR_CLOSING_JOB || '0 19 * * *', () => {
 });
 
 //Battery Check (if you have rechargeable bats (1.2 instead of 1.6v)
+
 cron.schedule(process.env.CRON_BATTERY_CHECK || '0 08 * * *', () => {
     petcare.emit('info',`Start battery check`);
     petcare.household.petCareData.devices.forEach(device => {
@@ -103,6 +105,23 @@ cron.schedule(process.env.CRON_BATTERY_CHECK || '0 08 * * *', () => {
             let voltage = device.status.battery / 4; //cos 4 batteries
             let percent = Math.round(((voltage - petcare.utils.batteryLow) / (petcare.utils.batteryFull - petcare.utils.batteryLow)) * 100);
             if(percent < 15) petcare.emit('message',`${device.name} het fasch ke saft me 🙀 <${percent} (${voltage}) `);
+        }
+    });
+});
+
+//Additional check for tractive trackers
+cron.schedule(process.env.CRON_TRACKER_CHECK || '0 19 * * *', async () => {
+    petcare.emit('info',`Start tracker check`);
+    const data = await checkTrackers();
+    let map = {
+        TLCEWOPY: pets[0],
+        TWCAHAFR: pets[1],
+        TKJHLTXY: pets[2],
+    };
+    data.forEach(tracker=>{
+        let level = parseInt(tracker.battery.replace('%',''));
+        if(level < process.env.TRACKER_LIMIT || 16){
+           this.emit('message',`${map[tracker.tracker]}'s tracker isch fascht läär: ${tracker.battery} 🙀`); 
         }
     });
 });
