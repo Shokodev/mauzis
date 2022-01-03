@@ -104,7 +104,7 @@ cron.schedule(process.env.CRON_BATTERY_CHECK || '0 08 * * *', () => {
         if (device.status.battery) {
             let voltage = device.status.battery / 4; //cos 4 batteries
             let percent = Math.round(((voltage - petcare.utils.batteryLow) / (petcare.utils.batteryFull - petcare.utils.batteryLow)) * 100);
-            if(percent < 15) petcare.emit('message',`${device.name} het fasch ke saft me 🙀 <${percent} (${voltage}) `);
+            if(percent < process.env.BATTERY_LIMIT || 16) petcare.emit('message',`${device.name} het fasch ke saft me 🙀 ${percent}% (${voltage}) `);
         }
     });
 });
