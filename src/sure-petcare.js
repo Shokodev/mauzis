@@ -89,13 +89,14 @@ petcare.getPetCustomReport = ()=> {
 };
 
 //Automatic door closing
-/* cron.schedule(process.env.CRON_DOOR_CLOSING_JOB || '0 19 * * *', () => {
+cron.schedule(process.env.CRON_DOOR_CLOSING_JOB || '0 19 * * *', () => {
     petcare.emit('info',`Start cron job for door closing`);
     let door = petcare.household.petCareData.devices
     .find(d=>d.product_id === petcare.utils.products.DOOR);
     petcare.setDoorState(door.name, petcare.utils.doorCommands.LOCK_IN);
 });
- */
+
+
 //Battery Check (if you have rechargeable bats (1.2 instead of 1.6v)
 
 cron.schedule(process.env.CRON_BATTERY_CHECK || '0 08 * * *', () => {
