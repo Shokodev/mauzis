@@ -1,5 +1,4 @@
 import logger from "./logger.js";
-import axios from "axios";
 import { Telegraf } from "telegraf";
 import { config } from "dotenv";
 import petcare from "./sure-petcare.js";
@@ -9,21 +8,6 @@ import { checkTrackers } from "./tractive.js";
 config();
 const bot = new Telegraf(process.env.BOT_ID);
 const pets = Array.from(process.env.PETS.split(","));
-
-const sendToElastic = async (data) => {
-  data.dump_createdAt = new Date();
-  try {
-    await axios.post(`http://elasticsearch:9200/mauzis-msg-dump/cats`, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  } catch (err) {
-    logger.error(
-      `send message from [${data.dump_createdAt}] to elastic failed with: ${err}`
-    );
-  }
-};
 
 bot.use(async (ctx, next) => {
   //basic security
@@ -48,7 +32,6 @@ petcare.on("error", async (err) => {
 });
 
 petcare.on("message", async (mes) => {
-  sendToElastic({ message: mes });
   if (mes !== "ignore") {
     try {
       await bot.telegram.sendMessage(process.env.CHAT_ID, mes);
@@ -58,15 +41,11 @@ petcare.on("message", async (mes) => {
   }
 });
 
-petcare.on("direct_message", async (msg) => {
-  sendToElastic(msg);
-});
-
 petcare.on("started", (start) => {
   app.get("/pc", async (req, res) => {
     res.json(petcare);
   });
-  
+
   app.post("/toggledoor", async (req, res) => {
     let device = petcare.household.petCareData.devices.find(
       (device) => device.name === process.env.DOORNAME
@@ -79,7 +58,7 @@ petcare.on("started", (start) => {
       res.send(false);
     }
   });
-  
+
   app.get("/doorstate", async (req, res) => {
     let device = petcare.household.petCareData.devices.find(
       (device) => device.name === process.env.DOORNAME
