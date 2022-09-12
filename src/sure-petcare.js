@@ -91,6 +91,7 @@ petcare.getPetCustomReport = ()=> {
 //Automatic door closing
 cron.schedule(process.env.CRON_DOOR_CLOSING_JOB || '0 19 * * *', () => {
     petcare.emit('info',`Start cron job for door closing`);
+    petcare.emit('message',`Türli zu mache...`);
     let door = petcare.household.petCareData.devices
     .find(d=>d.product_id === petcare.utils.products.DOOR);
     petcare.setDoorState(door.name, petcare.utils.doorCommands.LOCK_IN);
@@ -105,7 +106,8 @@ cron.schedule(process.env.CRON_BATTERY_CHECK || '0 08 * * *', () => {
         if (device.status.battery) {
             let voltage = device.status.battery / 4; //cos 4 batteries
             let percent = Math.round(((voltage - petcare.utils.batteryLow) / (petcare.utils.batteryFull - petcare.utils.batteryLow)) * 100);
-            if(percent < process.env.BATTERY_LIMIT || 16) petcare.emit('message',`${device.name} het fasch ke saft me 🙀 ${percent}% (${voltage}) `);
+            let lim = process.env.BATTERY_LIMIT || 16
+            if(percent < lim) petcare.emit('message',`${device.name} het fasch ke saft me 🙀 ${percent}% (${voltage}) `);
         }
     });
 });
