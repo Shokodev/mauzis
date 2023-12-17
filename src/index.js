@@ -28,7 +28,7 @@ petcare.on("info", (info) => {
 
 petcare.on("error", async (err) => {
   logger.error(err);
-  await bot.telegram.sendMessage(process.env.CHAT_ID, err);
+  //await bot.telegram.sendMessage(process.env.CHAT_ID, err);
 });
 
 petcare.on("message", async (mes) => {
@@ -46,12 +46,18 @@ petcare.on("started", (start) => {
     res.json(petcare);
   });
 
-  app.post("/toggledoor", async (req, res) => {
+  app.post("/setdoor", async (req, res) => {
     let device = petcare.household.petCareData.devices.find(
       (device) => device.name === process.env.DOORNAME
     );
-    let newState = device.status.locking.mode == 0 ? 1 : 0;
-    let result = await petcare.setDoorState(process.env.DOORNAME, newState);
+    let state;
+    if (req.body.state === "lock") {
+      state = 1;
+    }
+    if (req.body.state === "unlock") {
+      state = 0;
+    }
+    let result = await petcare.setDoorState(process.env.DOORNAME, state);
     if (result.data) {
       res.send(true);
     } else {
@@ -64,7 +70,11 @@ petcare.on("started", (start) => {
       (device) => device.name === process.env.DOORNAME
     );
     let state = device.status.locking.mode;
-    res.json({ state });
+    if (state === 0) {
+      res.json({ state:"unlocked" });
+    } else {
+      res.json({ state:"locked" });
+    }
   });
 });
 
