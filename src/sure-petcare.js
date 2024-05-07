@@ -6,7 +6,7 @@ import cron from 'node-cron';
 config();
 
 const petcareOptions = {
-    update_polling_seconds: 10,
+    update_polling_seconds: 20,
     message_throttle_ms: 500,
     battery_full: 1.4,
     battery_low: 1.15,
